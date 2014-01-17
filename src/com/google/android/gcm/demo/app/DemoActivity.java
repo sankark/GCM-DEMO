@@ -19,41 +19,50 @@ package com.google.android.gcm.demo.app;
 
 
 
-import com.google.android.gcm.demo.app.R;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-
-import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.CursorLoader;
+import android.content.Loader;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
+import android.app.LoaderManager;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 /**
  * Main UI for the demo app.
  */
-public class DemoActivity extends Activity {
+public class DemoActivity extends Activity { 
 
-    public static final String EXTRA_MESSAGE = "message";
-    public static final String PROPERTY_REG_ID = "regId";
+    private static final String PROPERTY_EMAIL = "email";
+	private static final String REG_ID = "regId";
+	public static final String EXTRA_MESSAGE = "message";
+    public static final String PROPERTY_REG_ID = REG_ID;
     private static final String PROPERTY_APP_VERSION = "appVersion";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final int MAX_ATTEMPTS = 5;
@@ -85,24 +94,82 @@ public class DemoActivity extends Activity {
 
         setContentView(R.layout.main);
         mDisplay = (TextView) findViewById(R.id.display);
-
+        
         context = getApplicationContext();
-
+        
         // Check device for Play Services APK. If check succeeds, proceed with GCM registration.
         if (checkPlayServices()) {
+        	
+        	
             gcm = GoogleCloudMessaging.getInstance(context);
+            
             regid = getRegistrationId(context);
 
             if (regid.isEmpty()) {
-                registerInBackground();
+            	String primaryEmailAddress = UserEmailFetcher.getEmail(context);
+            	if(!primaryEmailAddress.isEmpty()){
+            	Log.d(TAG, "Primary Email Address Found."+primaryEmailAddress);
+            	HashMap<String,String> regData = new HashMap<String,String>();
+            	regData.put(PROPERTY_EMAIL, primaryEmailAddress);
+                registerInBackground(regData);
+            	}else {
+                    Log.i(TAG, "No valid Email found.");
+                }
+                
             }
+        	
            
         } else {
             Log.i(TAG, "No valid Google Play Services APK found.");
         }
+        
+        //getLoaderManager().initLoader(0, null, this);
     }
 
-    @Override
+
+
+    private String getEmailAddress(Bundle savedInstanceState, boolean b) {
+		// TODO Auto-generated method stub
+    	CursorLoader cl = new CursorLoader(this,
+                // Retrieve data rows for the device user's 'profile' contact.
+                Uri.withAppendedPath(
+                        ContactsContract.Profile.CONTENT_URI,
+                        ContactsContract.Contacts.Data.CONTENT_DIRECTORY),
+                ProfileQuery.PROJECTION,
+
+                // Select only email addresses.
+                ContactsContract.Contacts.Data.MIMETYPE + " = ?",
+                new String[]{ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE},
+
+                // Show primary email addresses first. Note that there won't be
+                // a primary email address if the user hasn't specified one.
+                ContactsContract.Contacts.Data.IS_PRIMARY + " DESC");
+	    		Cursor cursor = cl.loadInBackground();
+	    		
+				 List<String> emails = new ArrayList<String>();
+			        cursor.moveToFirst();
+			        while (!cursor.isAfterLast()) {
+			            emails.add(cursor.getString(ProfileQuery.ADDRESS));
+			            // Potentially filter on ProfileQuery.IS_PRIMARY
+			            cursor.moveToNext();
+			        }
+			        Log.d(TAG, "Email list length = "+emails.size());
+		return emails.size() > 0 ? emails.get(0) : "";
+	}
+
+    
+	private String getPrimaryEmailAddress(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		return getEmailAddress(savedInstanceState,true);
+	}
+	
+    
+    private String getSecondaryEmailAddress(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		return getEmailAddress(savedInstanceState,false);
+	}
+
+	@Override
     protected void onResume() {
         super.onResume();
         // Check device for Play Services APK.
@@ -178,8 +245,9 @@ public class DemoActivity extends Activity {
      * <p>
      * Stores the registration ID and the app versionCode in the application's
      * shared preferences.
+     * @param regData 
      */
-    private void registerInBackground() {
+    private void registerInBackground(final HashMap<String, String> regData) {
         new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... params) {
@@ -190,10 +258,10 @@ public class DemoActivity extends Activity {
                     }
                     regid = gcm.register(SENDER_ID);
                     msg = "Device registered, registration ID=" + regid;
-
+                    regData.put(REG_ID, regid);
                     // You should send the registration ID to your server over HTTP, so it
                     // can use GCM/HTTP or CCS to send messages to your app.
-                    sendRegistrationIdToBackend(regid);
+                    sendRegistrationIdToBackend(regData);
 
                     // For this demo: we don't need to send it because the device will send
                     // upstream messages to a server that echo back the message using the
@@ -281,10 +349,9 @@ public class DemoActivity extends Activity {
      * messages to your app. Not needed for this demo since the device sends upstream messages
      * to a server that echoes back the message using the 'from' address in the message.
      */
-    private void sendRegistrationIdToBackend(String regId) {
+    private void sendRegistrationIdToBackend(HashMap<String, String> regData) {
       // Your implementation here.
-    	 Map<String, String> params = new HashMap<String, String>();
-         params.put("regId", regId);
+    	 Map<String, String> params = regData;
          long backoff = BACKOFF_MILLI_SECONDS + random.nextInt(1000);
          for (int i = 1; i <= MAX_ATTEMPTS; i++) {
              Log.d(TAG, "Attempt #" + i + " to register");
@@ -361,4 +428,18 @@ public class DemoActivity extends Activity {
             }
         }
       }
+    
+    private interface ProfileQuery {
+        String[] PROJECTION = {
+                ContactsContract.CommonDataKinds.Email.ADDRESS,
+                ContactsContract.CommonDataKinds.Email.IS_PRIMARY,
+        };
+
+        int ADDRESS = 0;
+        int IS_PRIMARY = 1;
+    }
+
+
+
+
 }

@@ -16,9 +16,6 @@
 
 package com.google.android.gcm.demo.app;
 
-import com.google.android.gcm.demo.app.R;
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -28,6 +25,9 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.RemoteViews;
+
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 /**
  * This {@code IntentService} does the actual handling of the GCM message.
@@ -91,6 +91,9 @@ public class GcmIntentService extends IntentService {
     private void sendNotification(String msg) {
         mNotificationManager = (NotificationManager)
                 this.getSystemService(Context.NOTIFICATION_SERVICE);
+        
+        RemoteViews remoteViews = new RemoteViews(getPackageName(),
+                R.layout.notiication);
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, DemoActivity.class), 0);
@@ -101,8 +104,16 @@ public class GcmIntentService extends IntentService {
         .setContentTitle("GCM Notification")
         .setStyle(new NotificationCompat.BigTextStyle()
         .bigText(msg))
+        .addAction(R.drawable.ic_launcher, "Call", contentIntent)
         .setContentText(msg);
-
+        
+        remoteViews.setImageViewResource(R.id.imagenotileft,R.drawable.ic_launcher);
+        remoteViews.setImageViewResource(R.id.imagenotiright,R.drawable.ic_launcher);
+ 
+        // Locate and set the Text into customnotificationtext.xml TextViews
+        remoteViews.setTextViewText(R.id.title,"GCM Notification");
+        remoteViews.setTextViewText(R.id.text,msg);
+        
         mBuilder.setContentIntent(contentIntent);
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }

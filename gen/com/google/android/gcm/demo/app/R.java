@@ -202,17 +202,22 @@ containing a value of this type.
         public static final int clear=0x7f050006;
         public static final int display=0x7f050007;
         public static final int hybrid=0x7f050004;
+        public static final int imagenotileft=0x7f050008;
+        public static final int imagenotiright=0x7f05000b;
         public static final int none=0x7f050000;
         public static final int normal=0x7f050001;
         public static final int satellite=0x7f050002;
         public static final int send=0x7f050005;
         public static final int terrain=0x7f050003;
+        public static final int text=0x7f05000a;
+        public static final int title=0x7f050009;
     }
     public static final class integer {
         public static final int google_play_services_version=0x7f070000;
     }
     public static final class layout {
         public static final int main=0x7f030000;
+        public static final int notiication=0x7f030001;
     }
     public static final class string {
         public static final int app_name=0x7f06001a;
@@ -239,6 +244,7 @@ containing a value of this type.
         [CHAR LIMIT=70] 
          */
         public static final int auth_client_using_bad_version_title=0x7f060014;
+        public static final int call=0x7f06001d;
         public static final int clear=0x7f06001c;
         /**  Button in confirmation dialog to enable Google Play services.  Clicking it
         will direct user to application settings of Google Play services where they
@@ -311,6 +317,18 @@ containing a value of this type.
         /**  Long form sign-in button text [CHAR LIMIT=30] 
          */
         public static final int common_signin_button_text_long=0x7f060013;
+        public static final int customnotification=0x7f060029;
+        public static final int customnotificationtext=0x7f060024;
+        public static final int customnotificationticker=0x7f060025;
+        public static final int customnotificationtitle=0x7f060023;
+        public static final int hello_world=0x7f06001e;
+        public static final int lbltext=0x7f060027;
+        public static final int lbltitle=0x7f060026;
+        public static final int menu_settings=0x7f06001f;
+        public static final int notification=0x7f060028;
+        public static final int notificationtext=0x7f060021;
+        public static final int notificationticker=0x7f060022;
+        public static final int notificationtitle=0x7f060020;
         public static final int send=0x7f06001b;
     }
     public static final class styleable {

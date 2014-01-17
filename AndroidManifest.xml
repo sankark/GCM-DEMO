@@ -17,7 +17,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.google.android.gcm.demo.app" android:versionCode="1" android:versionName="1.0">
 
-    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="19"/>
+    <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="19"/>
      <permission android:name="com.google.android.gcm.demo.app.permission.C2D_MESSAGE" android:protectionLevel="signature"/>
 
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -25,6 +25,8 @@
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.READ_PROFILE" />
+<uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <!-- Main activity. -->
     <application android:allowBackup="false"
