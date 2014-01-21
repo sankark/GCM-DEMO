@@ -6,6 +6,7 @@
     <ImageView
         android:id="@+id/imagenotileft"
         android:layout_width="wrap_content"
+         android:onClick="onClick"
         android:layout_height="wrap_content" />
  
     <TextView
@@ -26,6 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
+        android:onClick="onClick"
         android:padding="10dp" />
  
 </RelativeLayout>

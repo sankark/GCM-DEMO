@@ -21,6 +21,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
@@ -45,6 +46,9 @@ public class GcmIntentService extends IntentService {
         super("GcmIntentService");
     }
     public static final String TAG = "GCM Demo";
+	private static final String YES_ACTION = "com.google.android.gcm.demo.app.intent.action.YES";
+	private static final String MAYBE_ACTION = "com.google.android.gcm.demo.app.intent.action.MAYBE";
+	private static final String NO_ACTION = "com.google.android.gcm.demo.app.intent.action.NO";
 
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -53,7 +57,7 @@ public class GcmIntentService extends IntentService {
         // The getMessageType() intent parameter must be the intent you received
         // in your BroadcastReceiver.
         String messageType = gcm.getMessageType(intent);
-
+        
         if (!extras.isEmpty()) {  // has effect of unparcelling Bundle
             /*
              * Filter messages based on message type. Since it is likely that GCM will be
@@ -97,24 +101,55 @@ public class GcmIntentService extends IntentService {
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, DemoActivity.class), 0);
+        
+        String url = "tel:3334444";
+        PendingIntent callIntent = PendingIntent.getActivity(this, 0,
+                new Intent(Intent.ACTION_CALL, Uri.parse(url)), 0);
 
         NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-        .setSmallIcon(R.drawable.ic_stat_gcm)
+                new NotificationCompat.Builder(this);
+        
+        
+       
+        Intent yesReceive = new Intent(this,DemoActivity.class);  
+        yesReceive.setAction(YES_ACTION);
+        PendingIntent pendingIntentYes = PendingIntent.getActivity(this, 12345, yesReceive, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        //Maybe intent
+        Intent maybeReceive = new Intent(android.content.Intent.ACTION_SEND);  
+        maybeReceive.setType("plain/text");    
+        maybeReceive.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{"abc@xyz.com"});
+        maybeReceive.putExtra(android.content.Intent.EXTRA_SUBJECT, "Sending Email");   
+        maybeReceive.putExtra(android.content.Intent.EXTRA_TEXT, "Sending Email");
+        PendingIntent pendingIntentMaybe = PendingIntent.getActivity(this, 12345, maybeReceive, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        //No intent
+        Intent noReceive = new Intent();  
+        noReceive.setAction(NO_ACTION);
+        PendingIntent pendingIntentNo = PendingIntent.getBroadcast(this, 12345, noReceive, PendingIntent.FLAG_UPDATE_CURRENT);
+        
+        mBuilder.setSmallIcon(R.drawable.ic_stat_gcm)
         .setContentTitle("GCM Notification")
         .setStyle(new NotificationCompat.BigTextStyle()
         .bigText(msg))
-        .addAction(R.drawable.ic_launcher, "Call", contentIntent)
-        .setContentText(msg);
+        .addAction(R.drawable.ic_launcher, "Yes", pendingIntentYes)
+        .addAction(R.drawable.ic_launcher, "Partly", pendingIntentMaybe)
+        .addAction(R.drawable.ic_launcher, "No", pendingIntentNo)
+        .setContentText(msg) 
+        .setContentIntent(contentIntent);
         
-        remoteViews.setImageViewResource(R.id.imagenotileft,R.drawable.ic_launcher);
+     
+        
+
+        
+       remoteViews.setImageViewResource(R.id.imagenotileft,R.drawable.ic_launcher);
         remoteViews.setImageViewResource(R.id.imagenotiright,R.drawable.ic_launcher);
  
-        // Locate and set the Text into customnotificationtext.xml TextViews
+
         remoteViews.setTextViewText(R.id.title,"GCM Notification");
         remoteViews.setTextViewText(R.id.text,msg);
         
-        mBuilder.setContentIntent(contentIntent);
+      
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 }

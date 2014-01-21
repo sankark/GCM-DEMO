@@ -67,8 +67,18 @@
                 <category  android:name="com.google.android.gcm.demo.app" />
             </intent-filter>
         </receiver>
-        <service android:name=".GcmIntentService" android:enabled="true"/>
         
+       <receiver android:name=".NotificationObtionReceiver" android:enabled="true">
+            <intent-filter>
+                <!-- Receives the actual messages. -->
+                <action android:name="com.google.android.gcm.demo.app.intent.action.YES" />
+                <action android:name="com.google.android.gcm.demo.app.intent.action.MAYBE" />
+                <action android:name="com.google.android.gcm.demo.app.intent.action.NO" />
+              
+            </intent-filter>
+        </receiver>
+        <service android:name=".GcmIntentService" android:enabled="true"/>
+        <service android:name=".NotificationOptionIntentService" android:enabled="true"/>
 
     </application>
 
